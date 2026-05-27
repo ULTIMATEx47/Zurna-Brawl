@@ -60,6 +60,22 @@ app.get('/api/player/:tag/battles', async (req, res) => {
   }
 });
 
+app.get('/api/player/:tag/friends', async (req, res) => {
+  try {
+    const tag = cleanTag(req.params.tag);
+    const response = await axios.get(`${BS_BASE}/players/%23${tag}/friends`, {
+      headers: { Authorization: `Bearer ${BS_TOKEN}` },
+      timeout: 8000
+    });
+    res.json(response.data);
+  } catch (err) {
+    const status = err.response?.status || 500;
+    const message = err.response?.data?.reason || 'Arkadaslar alinamadi';
+    console.error('Friends error:', status, message, 'tag:', req.params.tag);
+    res.status(status).json({ error: message });
+  }
+});
+
 app.get('/api/club/:tag', async (req, res) => {
   try {
     const tag = cleanTag(req.params.tag);
