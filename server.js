@@ -70,9 +70,10 @@ app.get('/api/player/:tag/friends', async (req, res) => {
     res.json(response.data);
   } catch (err) {
     const status = err.response?.status || 500;
-    const message = err.response?.data?.reason || 'Arkadaslar alinamadi';
-    console.error('Friends error:', status, message, 'tag:', req.params.tag);
-    res.status(status).json({ error: message });
+    const reason = err.response?.data?.reason || '';
+    const message = err.response?.data?.message || reason || 'Arkadaslar alinamadi';
+    console.error('Friends error:', status, reason, 'tag:', req.params.tag);
+    res.status(status).json({ error: message, reason, status });
   }
 });
 
