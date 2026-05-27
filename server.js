@@ -5,43 +5,41 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// BrawlAPI - ücretsiz, token yok, IP kısıtlaması yok
 const BS_BASE = 'https://api.brawlapi.com/v1';
 
 app.use(cors());
 app.use(express.json());
 
-// Tag temizleme: #ABC123 veya ABC123 → %23ABC123
-function cleanTag(tag) {
-  const raw = tag.replace(/^%23/, '').replace(/^#/, '').toUpperCase();
-  return encodeURIComponent('#' + raw);
+// Tag temizle: her formattan sade ABC123 yap, sonra URL'e göm
+function cleanTag(raw) {
+  // %23, # veya düz hepsini handle et
+  return raw.replace(/^%23/i, '').replace(/^#/, '').toUpperCase().trim();
 }
 
-// Sağlık kontrolü
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', app: 'Zurna Brawl Tracker Backend', api: 'BrawlAPI' });
+  res.json({ status: 'ok', app: 'Zurna Brawl Tracker' });
 });
 
-// Oyuncu bilgisi
 app.get('/api/player/:tag', async (req, res) => {
   try {
     const tag = cleanTag(req.params.tag);
-    const response = await axios.get(`${BS_BASE}/players/${tag}`, {
+    // axios'a doğrudan string ver, # ile
+    const response = await axios.get(`${BS_BASE}/players/%23${tag}`, {
       timeout: 8000
     });
     res.json(response.data);
   } catch (err) {
     const status = err.response?.status || 500;
     const message = err.response?.data?.reason || err.response?.data?.message || 'Oyuncu bulunamadi';
+    console.error('Player error:', err.response?.data, 'tag:', req.params.tag);
     res.status(status).json({ error: message });
   }
 });
 
-// Savaş geçmişi
 app.get('/api/player/:tag/battles', async (req, res) => {
   try {
     const tag = cleanTag(req.params.tag);
-    const response = await axios.get(`${BS_BASE}/players/${tag}/battlelog`, {
+    const response = await axios.get(`${BS_BASE}/players/%23${tag}/battlelog`, {
       timeout: 8000
     });
     res.json(response.data);
@@ -52,11 +50,10 @@ app.get('/api/player/:tag/battles', async (req, res) => {
   }
 });
 
-// Kulüp bilgisi
 app.get('/api/club/:tag', async (req, res) => {
   try {
     const tag = cleanTag(req.params.tag);
-    const response = await axios.get(`${BS_BASE}/clubs/${tag}`, {
+    const response = await axios.get(`${BS_BASE}/clubs/%23${tag}`, {
       timeout: 8000
     });
     res.json(response.data);
@@ -68,5 +65,5 @@ app.get('/api/club/:tag', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Zurna Brawl Tracker backend calisiyor → port ${PORT}`);
+  console.log(`Zurna Brawl Tracker calisiyor → port ${PORT}`);
 });
