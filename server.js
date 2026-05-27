@@ -5,9 +5,8 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// BrawlAPI v2
-const BS_BASE = 'https://api.brawlapi.com/v2';
-const HEADERS = { 'User-Agent': 'ZurnaBrawlTracker/1.0' };
+const BS_TOKEN = process.env.BRAWL_STARS_TOKEN;
+const BS_BASE = 'https://api.brawlstars.com/v1';
 
 app.use(cors());
 app.use(express.json());
@@ -17,14 +16,24 @@ function cleanTag(tag) {
 }
 
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', app: 'Zurna Brawl Tracker', api: 'BrawlAPI v2' });
+  res.json({ status: 'ok', app: 'Zurna Brawl Tracker' });
+});
+
+// Render'ın outbound IP'sini görmek için
+app.get('/my-ip', async (req, res) => {
+  try {
+    const r = await axios.get('https://api.ipify.org?format=json', { timeout: 5000 });
+    res.json({ ip: r.data.ip });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
 });
 
 app.get('/api/player/:tag', async (req, res) => {
   try {
     const tag = cleanTag(req.params.tag);
     const response = await axios.get(`${BS_BASE}/players/%23${tag}`, {
-      headers: HEADERS,
+      headers: { Authorization: `Bearer ${BS_TOKEN}` },
       timeout: 8000
     });
     res.json(response.data);
@@ -40,7 +49,7 @@ app.get('/api/player/:tag/battles', async (req, res) => {
   try {
     const tag = cleanTag(req.params.tag);
     const response = await axios.get(`${BS_BASE}/players/%23${tag}/battlelog`, {
-      headers: HEADERS,
+      headers: { Authorization: `Bearer ${BS_TOKEN}` },
       timeout: 8000
     });
     res.json(response.data);
@@ -55,7 +64,7 @@ app.get('/api/club/:tag', async (req, res) => {
   try {
     const tag = cleanTag(req.params.tag);
     const response = await axios.get(`${BS_BASE}/clubs/%23${tag}`, {
-      headers: HEADERS,
+      headers: { Authorization: `Bearer ${BS_TOKEN}` },
       timeout: 8000
     });
     res.json(response.data);
